@@ -1,4 +1,5 @@
 import os
+import json
 from datetime import datetime, timedelta
 
 import requests
@@ -6,7 +7,7 @@ from google.cloud import bigquery
 
 
 class FBOfflineConversionJob:
-    def __init__(self, day=7):
+    def __init__(self, day):
         self.OFFLINE_EVENT_SET_ID = os.getenv("OFFLINE_EVENT_SET_ID")
         self.API_VER = os.getenv("API_VER")
         self.fetch_date = (datetime.now() - timedelta(days=day)).strftime("%Y-%m-%d")
@@ -49,23 +50,33 @@ class FBOfflineConversionJob:
             params={"access_token": os.getenv("ACCESS_TOKEN")},
             json={"upload_tag": "store_data", "data": rows},
         ) as r:
-            try:
-                r.raise_for_status()
-            except:
-                pass
-            finally:
-                res = r.json()
+            res = r.json()
+        res['date'] = self.fetch_date
         return res
 
     def run(self):
         rows = self.fetch_data()
-        results = self.push(rows)
-        print(results)
+        return self.push(rows)
 
 
 def main(request):
-    vuanem_fb_offline_conversion = FBOfflineConversionJob()
-    vuanem_fb_offline_conversion.run()
+    request_json = request.get_json()
+    day = request_json.get('day', 1)
+    vuanem_fb_offline_conversion = FBOfflineConversionJob(day)
+    responses = {
+        'pipelines': 'Facebook Offline Conversions',
+        'results': [vuanem_fb_offline_conversion.run()]
+    }
 
+    print(responses)
 
-main(0)
+    _ = requests.post(
+        "https://api.telegram.org/bot{token}/sendMessage".format(
+            token=os.getenv("TELEGRAM_TOKEN")
+        ),
+        json={
+            "chat_id": os.getenv("TELEGRAM_CHAT_ID"),
+            "text": json.dumps(responses, indent=4),
+        },
+    )
+    return responses

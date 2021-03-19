@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 env:
-  NAME: vuanem_FB_Page_Insights
+  NAME: vuanem_FB_Offline_Conversions
 
 jobs:
   deploy:
@@ -27,7 +27,8 @@ jobs:
         --runtime=python38
         --service-account=${{ secrets.GCP_SA }}
         --set-env-vars=\
-        ACCESS_TOKEN=${{ secrets.NS_DSN }},\
-        API_VER=${{ secrets.NS_UID }},\
+        ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }},\
+        API_VER=${{ secrets.API_VER }},\
+        OFFLINE_EVENT_SET_ID=${{ OFFLINE_EVENT_SET_ID}},\
         TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }},\
         TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
