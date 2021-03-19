@@ -25,6 +25,7 @@ jobs:
         gcloud functions deploy ${{ env.NAME }}
         --entry-point=main
         --runtime=python38
+        --project=${{ secrets.PROJECT_ID }}
         --service-account=${{ secrets.GCP_SA }}
         --set-env-vars=\
         ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }},\
