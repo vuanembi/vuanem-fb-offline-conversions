@@ -80,3 +80,6 @@ def main(request):
         },
     )
     return responses
+
+if __name__ == '__main__':
+    main(0)
