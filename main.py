@@ -16,12 +16,12 @@ class FBOfflineConversionJob:
         client = bigquery.Client()
         rows = client.query(
             f"""SELECT
-            UNIX_SECONDS(TIMESTAMP_ADD(TIMESTAMP(TRANDATE), INTERVAL 990 MINUTE)) AS TRANDATE,
+            TRANDATE,
             TO_HEX(SHA256(CUSTOMER_PHONE)) AS CUSTOMER_PHONE,
             TRANID,
-            CAST(NET_AMOUNT AS INT64) AS NET_AMOUNT
-            FROM NetSuite.SalesOrder
-            WHERE TRANDATE = '{self.fetch_date}'
+            CAST((SELECT SUM(TRANSACTION_LINES.NET_AMOUNT) FROM UNNEST(TRANSACTION_LINES) TRANSACTION_LINES) AS INT64) AS NET_AMOUNT
+            FROM NetSuite.SalesOrderLines
+            WHERE TIMESTAMP_TRUNC(TRANDATE, DAY) = '{self.fetch_date}'
             AND CUSTOMER_PHONE IS NOT NULL
             """
         ).result()
@@ -30,9 +30,7 @@ class FBOfflineConversionJob:
 
     def push(self, rows):
         mapper = lambda x: {
-            "match_keys": {
-                "phone": [x["CUSTOMER_PHONE"]]
-            },
+            "match_keys": {"phone": [x["CUSTOMER_PHONE"]]},
             "currency": "VND",
             "value": x["NET_AMOUNT"],
             "event_name": "Purchase",
@@ -41,7 +39,7 @@ class FBOfflineConversionJob:
             "custom_data": {"event_source": "in_store"},
         }
         rows = list(map(mapper, rows))
-        
+
         with requests.post(
             "https://graph.facebook.com/{API_VER}/{OFFLINE_EVENT_SET_ID}/events".format(
                 API_VER=os.getenv("API_VER"),
@@ -51,8 +49,8 @@ class FBOfflineConversionJob:
             json={"upload_tag": "store_data", "data": rows},
         ) as r:
             res = r.json()
-        res['date'] = self.fetch_date
-        return {'date': self.fetch_date, **res}
+        res["date"] = self.fetch_date
+        return {"date": self.fetch_date, **res}
 
     def run(self):
         rows = self.fetch_data()
@@ -62,13 +60,13 @@ class FBOfflineConversionJob:
 def main(request):
     request_json = request.get_json()
     if request_json:
-        day = request_json.get('day', 1)
+        day = request_json.get("day", 1)
     else:
         day = 1
     vuanem_fb_offline_conversion = FBOfflineConversionJob(day)
     responses = {
-        'pipelines': 'Facebook Offline Conversions',
-        'results': [vuanem_fb_offline_conversion.run()]
+        "pipelines": "Facebook Offline Conversions",
+        "results": [vuanem_fb_offline_conversion.run()],
     }
 
     print(responses)
@@ -84,5 +82,6 @@ def main(request):
     )
     return responses
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main(0)
