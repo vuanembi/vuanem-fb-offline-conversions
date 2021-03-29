@@ -16,7 +16,7 @@ class FBOfflineConversionJob:
         client = bigquery.Client()
         rows = client.query(
             f"""SELECT
-            TRANDATE,
+            UNIX_SECONDS(TRANDATE) AS TRANDATE,
             TO_HEX(SHA256(CUSTOMER_PHONE)) AS CUSTOMER_PHONE,
             TRANID,
             CAST((SELECT SUM(TRANSACTION_LINES.NET_AMOUNT) FROM UNNEST(TRANSACTION_LINES) TRANSACTION_LINES) AS INT64) AS NET_AMOUNT
