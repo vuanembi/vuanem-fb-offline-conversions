@@ -52,7 +52,7 @@ class FBOfflineConversionJob:
         ) as r:
             res = r.json()
         res['date'] = self.fetch_date
-        return res
+        return {'date': self.fetch_date, **res}
 
     def run(self):
         rows = self.fetch_data()
@@ -61,7 +61,10 @@ class FBOfflineConversionJob:
 
 def main(request):
     request_json = request.get_json()
-    day = request_json.get('day', 1)
+    if request_json:
+        day = request_json.get('day', 1)
+    else:
+        day = 1
     vuanem_fb_offline_conversion = FBOfflineConversionJob(day)
     responses = {
         'pipelines': 'Facebook Offline Conversions',
