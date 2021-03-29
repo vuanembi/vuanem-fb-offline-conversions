@@ -28,9 +28,9 @@ jobs:
         --trigger-http
         --project=${{ secrets.PROJECT_ID }}
         --service-account=${{ secrets.GCP_SA }}
-        --set-env-vars=\
+        --set-env-vars="\
         ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }},\
         API_VER=${{ secrets.API_VER }},\
         OFFLINE_EVENT_SET_ID=${{ secrets.OFFLINE_EVENT_SET_ID}},\
         TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }},\
-        TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
+        TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}"
