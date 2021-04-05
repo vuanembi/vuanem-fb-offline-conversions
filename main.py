@@ -17,7 +17,7 @@ class FBOfflineConversionJob:
         rows = client.query(
             f"""SELECT
             UNIX_SECONDS(TRANDATE) AS TRANDATE,
-            TO_HEX(SHA256(CUSTOMER_PHONE)) AS CUSTOMER_PHONE,
+            TO_HEX(SHA256("84" || SUBSTRING(CUSTOMER_PHONE, 2))) AS CUSTOMER_PHONE,
             TRANID,
             CAST((SELECT SUM(TRANSACTION_LINES.NET_AMOUNT) FROM UNNEST(TRANSACTION_LINES) TRANSACTION_LINES) AS INT64) AS NET_AMOUNT
             FROM NetSuite.SalesOrderLines
@@ -28,7 +28,7 @@ class FBOfflineConversionJob:
         client.close()
         return [dict(zip(row.keys(), row.values())) for row in rows]
 
-    def push(self, rows):
+    def transform(self, rows):
         mapper = lambda x: {
             "match_keys": {"phone": [x["CUSTOMER_PHONE"]]},
             "currency": "VND",
@@ -38,8 +38,9 @@ class FBOfflineConversionJob:
             "order_id": x["TRANID"],
             "custom_data": {"event_source": "in_store"},
         }
-        rows = list(map(mapper, rows))
+        return list(map(mapper, rows))
 
+    def push(self, rows):
         with requests.post(
             "https://graph.facebook.com/{API_VER}/{OFFLINE_EVENT_SET_ID}/events".format(
                 API_VER=os.getenv("API_VER"),
@@ -54,6 +55,7 @@ class FBOfflineConversionJob:
 
     def run(self):
         rows = self.fetch_data()
+        rows = self.transform(rows)
         return self.push(rows)
 
 
