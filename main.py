@@ -5,28 +5,29 @@ from datetime import datetime, timedelta
 import requests
 from google.cloud import bigquery
 
+OFFLINE_EVENT_SET_ID = os.getenv("OFFLINE_EVENT_SET_ID")
+API_VER = os.getenv("API_VER")
+
 
 class FBOfflineConversionJob:
     def __init__(self, day):
-        self.OFFLINE_EVENT_SET_ID = os.getenv("OFFLINE_EVENT_SET_ID")
-        self.API_VER = os.getenv("API_VER")
-        self.fetch_date = (datetime.now() - timedelta(days=day)).strftime("%Y-%m-%d")
+        self.fetch_date = (datetime.utcnow() - timedelta(days=day)).strftime("%Y-%m-%d")
 
     def fetch_data(self):
         client = bigquery.Client()
-        rows = client.query(
-            f"""SELECT
-            UNIX_SECONDS(TRANDATE) AS TRANDATE,
-            TO_HEX(SHA256("84" || SUBSTRING(CUSTOMER_PHONE, 2))) AS CUSTOMER_PHONE,
-            TRANID,
-            CAST((SELECT SUM(TRANSACTION_LINES.NET_AMOUNT) FROM UNNEST(TRANSACTION_LINES) TRANSACTION_LINES) AS INT64) AS NET_AMOUNT
-            FROM NetSuite.SalesOrderLines
-            WHERE TIMESTAMP_TRUNC(TRANDATE, DAY) = '{self.fetch_date}'
-            AND CUSTOMER_PHONE IS NOT NULL
+        query = f"""
+            SELECT * FROM NetSuite.vn_FacebookOfflineConversions
+            WHERE DATE(TIMESTAMP_SECONDS(TRANDATE)) = @TRANDATE
             """
-        ).result()
+        job_config = bigquery.QueryJobConfig(
+            query_parameters=[
+                bigquery.ScalarQueryParameter("TRANDATE", "STRING", self.fetch_date),
+            ]
+        )
+        rows = client.query(query, job_config=job_config).result()
+
         client.close()
-        return [dict(zip(row.keys(), row.values())) for row in rows]
+        return [dict(row.items()) for row in rows]
 
     def transform(self, rows):
         mapper = lambda x: {
@@ -41,11 +42,9 @@ class FBOfflineConversionJob:
         return list(map(mapper, rows))
 
     def push(self, rows):
+        url = f"https://graph.facebook.com/{API_VER}/{OFFLINE_EVENT_SET_ID}/events"
         with requests.post(
-            "https://graph.facebook.com/{API_VER}/{OFFLINE_EVENT_SET_ID}/events".format(
-                API_VER=os.getenv("API_VER"),
-                OFFLINE_EVENT_SET_ID=os.getenv("OFFLINE_EVENT_SET_ID"),
-            ),
+            url,
             params={"access_token": os.getenv("ACCESS_TOKEN")},
             json={"upload_tag": "store_data", "data": rows},
         ) as r:
@@ -55,6 +54,7 @@ class FBOfflineConversionJob:
 
     def run(self):
         rows = self.fetch_data()
+        rows
         rows = self.transform(rows)
         return self.push(rows)
 
