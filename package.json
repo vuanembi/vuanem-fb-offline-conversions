@@ -1,0 +1,35 @@
+{
+  "name": "vuanem_fb_offline_conversions",
+  "version": "1.0.0",
+  "description": "[![deploy](https://github.com/hieumdd/vuanem_fb_offline_conversions/actions/workflows/main.yaml/badge.svg)](https://github.com/hieumdd/vuanem_fb_offline_conversions/actions/workflows/main.yaml)",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hieumdd/vuanem_fb_offline_conversions.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hieumdd/vuanem_fb_offline_conversions/issues"
+  },
+  "homepage": "https://github.com/hieumdd/vuanem_fb_offline_conversions#readme",
+  "dependencies": {
+    "@google-cloud/bigquery": "^5.6.0",
+    "axios": "^0.21.1",
+    "dotenv": "^10.0.0",
+    "moment": "^2.29.1"
+  },
+  "devDependencies": {
+    "chai": "^4.3.4",
+    "eslint": "^7.29.0",
+    "mocha": "^9.0.1",
+    "sinon": "^11.1.1"
+  }
+}
