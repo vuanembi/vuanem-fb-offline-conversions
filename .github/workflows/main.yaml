@@ -23,10 +23,10 @@ jobs:
 
     - name: Deploy to Cloud Functions
       run: >-
-        gcloud functions deploy ${{ env.NAME }}
+        gcloud functions deploy ${{ env.FUNCTION_NAME }}
         --entry-point=main
         --runtime=nodejs14
         --trigger-http
         --project=${{ secrets.PROJECT_ID }}
         --service-account=${{ secrets.GCP_SA }}
-        --set-env-vars=ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }},API_VER=${{ secrets.API_VER }},TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }},TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
+        --set-env-vars=ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }},API_VER=${{ env.API_VER }},TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }},TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
