@@ -6,7 +6,7 @@ const { main } = require('..');
 describe('Unit Test', () => {
     it('auto', async () => {
         const req = {
-            day: 4,
+            day: 1,
         };
         const res = { send: sinon.stub() };
         await main(req, res);
