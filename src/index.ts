@@ -13,7 +13,7 @@ export const main: HttpFunction = (req, res) => {
 
     offlineConversionService(body).then((num) => {
         console.log(num);
-        res.status(200).send(num);
+        res.status(200).send({num});
         return
     });
 };
