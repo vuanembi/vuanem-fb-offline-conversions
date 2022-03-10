@@ -1,6 +1,6 @@
-import { assert } from 'chai';
-
 import offlineConversionService from '../src/offlineConversion/offlineConversionService';
+
+jest.setTimeout(100000000)
 
 describe('Offline Conversion', () => {
     it('Pipeline Service', async () => {
@@ -8,6 +8,6 @@ describe('Offline Conversion', () => {
             day: 1,
         };
         const res = await offlineConversionService(options);
-        assert.isAbove(res, 0);
-    }).timeout(540000);
+        expect(res).toBeGreaterThan(0);
+    })
 });
