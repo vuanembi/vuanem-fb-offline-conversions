@@ -15,6 +15,9 @@ type UploadResponse = {
 const upload = (eventSetId: number) => (data: OfflineConversionData) =>
     CLIENT.post<UploadResponse>(`/${eventSetId}/events`, data)
         .then(({ data: { num_processed_entries } }) => num_processed_entries)
-        .catch(() => 0);
+        .catch((err) => {
+            err.isAxiosError && console.log(err.response?.data);
+            return 0;
+        });
 
 export default upload;
