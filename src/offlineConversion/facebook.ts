@@ -1,26 +1,21 @@
-type TranDate = number;
-type CustomerPhone = string;
-type TranID = string;
-type NetAmount = number;
-
 export type SalesOrderData = {
-    TRANDATE: TranDate;
-    CUSTOMER_PHONE: CustomerPhone;
-    TRANID: TranID;
-    NET_AMOUNT: number;
+    event_time: number;
+    phone: string;
+    order_id: string;
+    value: number;
 };
 
 export type OfflineConversionData = {
     upload_tag: 'store_data';
     data: {
         match_keys: {
-            phone: CustomerPhone[];
+            phone: string[];
         };
         currency: 'VND';
-        value: NetAmount;
+        value: number;
         event_name: 'Purchase';
-        event_time: TranDate;
-        order_id: TranID;
+        event_time: number;
+        order_id: string;
         custom_data: {
             event_source: 'in_store';
         };
